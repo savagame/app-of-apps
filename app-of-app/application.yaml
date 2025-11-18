@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/savagame/app-of-apps.git
+    targetRevision: main
+    path: ./app-of-app/simple-webapp
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: app-of-app
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
