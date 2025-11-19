@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: simple-webapp
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            env: prod
+        values:
+          branch: main
+  template:
+    metadata:
+      name: "{{name}}-simple-webapp"
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: ".;.."
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/savagame/app-of-apps.git
+          targetRevision: "{{values.branch}}"
+          path: ./applicationsets/simple-webapp
+      destination:
+        name: "{{name}}"
+        namespace: "argocd"
+        syncOptions:
+          - CreateNamespace=true
