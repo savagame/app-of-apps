@@ -79,3 +79,30 @@ accidental prod changes
 
 YAMLs diverging over time
 ```
+
+### Environment per folders
+
+Each folder represents a specific environment such as development, staging, or production. This structure allows for clear separation and management of configurations for each environment, facilitating easier updates and maintenance.
+
+See Everything in Argo CD UI
+
+```
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+Promote QA → Stage?
+
+```
+cp overlays/qa/patch.yaml overlays/stage/patch.yaml
+git add .
+git commit -m "Promote QA version to Stage"
+git push
+```
+
+Promote Stage → Prod?
+
+```
+cp overlays/stage/patch.yaml overlays/prod/patch.yaml
+git commit -am "Promote Stage to Prod"
+git push
+```
