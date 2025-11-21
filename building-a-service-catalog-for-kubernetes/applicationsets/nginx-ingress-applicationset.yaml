@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            env: dev
+            core-basic: enabled
+        values:
+          branch: main
+    - clusters:
+        selector:
+          matchLabels:
+            env: prod
+            core-basic: enabled
+        values:
+          branch: main
+  template:
+    metadata:
+      name: "{{name}}-ingress-nginx"
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: ".;.."
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/savagame/GitOps-At-Scale-Multitenancy.git
+          targetRevision: main
+          ref: valuesRepo
+        - repoURL: https://github.com/savagame/GitOps-At-Scale-Multitenancy.git
+          targetRevision: "{{values.branch}}"
+          path: "./building-a-service-catalog-for-kubernetes/networking/ingress-nginx" #path to the application in the umbrella repo
+          helm:
+            releaseName: "ingress-nginx" # Release name override (defaults to application name)
+            valueFiles:
+              - "values.yaml" #use values.yaml from umbrella repo
+              - "$valuesRepo/chapter05/chapter-5-building-a-service-catalog-for-kubernetes/cluster/{{name}}/networking/ingress-nginx/values.yaml" #override umbrella values from custom values repo
+      destination:
+        name: "{{name}}"
+        namespace: "ingress-nginx"
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

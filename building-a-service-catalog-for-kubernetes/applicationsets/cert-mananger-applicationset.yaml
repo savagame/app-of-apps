@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            env: dev
+            core-basic: enabled
+            security-basic: enabled
+        values:
+          branch: main
+    - clusters:
+        selector:
+          matchLabels:
+            env: prod
+            core-basic: enabled
+            security-basic: enabled
+        values:
+          branch: main
+  template:
+    metadata:
+      name: "{{name}}-cert-manager"
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: ".;.."
+    spec:
+      project: default
+      sources:
+        - repoURL: https://github.com/savagame/GitOps-At-Scale-Multitenancy.git
+          targetRevision: main
+          ref: valuesRepo
+        - repoURL: https://github.com/savagame/GitOps-At-Scale-Multitenancy.git
+          targetRevision: "{{values.branch}}"
+          path: "./building-a-service-catalog-for-kubernetes/security/cert-manager"
+          helm:
+            releaseName: "cert-manager"
+            valueFiles:
+              - "values.yaml"
+              - "$valuesRepo/building-a-service-catalog-for-kubernetes/cluster/{{name}}/security/cert-manager/values.yaml"
+      destination:
+        name: "{{name}}"
+        namespace: "cert-manager"
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
