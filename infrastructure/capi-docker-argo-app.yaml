@@ -1,18 +1,96 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: capi-docker-cluster
+  name: capi-docker-cluster-1
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/savagame/GitOps-At-Scale-Multitenancy.git
     targetRevision: main
     path: ./infrastructure/docker
+
   destination:
-    server: https://kubernetes.default.svc
     namespace: default
+    server: https://kubernetes.default.svc
+
   syncPolicy:
     automated:
-      prune: true
+      prune: false
       selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true
+
+  ignoreDifferences:
+    # Cluster API core resources
+    - group: cluster.x-k8s.io
+      kind: Cluster
+      jsonPointers:
+        - /status
+
+    - group: cluster.x-k8s.io
+      kind: MachineDeployment
+      jsonPointers:
+        - /status
+
+    - group: cluster.x-k8s.io
+      kind: MachineSet
+      jsonPointers:
+        - /status
+
+    - group: cluster.x-k8s.io
+      kind: Machine
+      jsonPointers:
+        - /status
+
+    - group: cluster.x-k8s.io
+      kind: ClusterClass
+      jsonPointers:
+        - /status
+
+    - group: bootstrap.cluster.x-k8s.io
+      kind: KubeadmConfig
+      jsonPointers:
+        - /status
+
+    - group: controlplane.cluster.x-k8s.io
+      kind: KubeadmControlPlane
+      jsonPointers:
+        - /status
+
+    - group: controlplane.cluster.x-k8s.io
+      kind: KubeadmControlPlaneTemplate
+      jsonPointers:
+        - /status
+
+    # Infrastructure provider (Docker)
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerCluster
+      jsonPointers:
+        - /status
+
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerClusterTemplate
+      jsonPointers:
+        - /status
+
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerMachine
+      jsonPointers:
+        - /status
+
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerMachineTemplate
+      jsonPointers:
+        - /status
+
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerMachinePool
+      jsonPointers:
+        - /status
+
+    - group: infrastructure.cluster.x-k8s.io
+      kind: DockerMachinePoolTemplate
+      jsonPointers:
+        - /status
