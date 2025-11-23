@@ -15,8 +15,6 @@ vcluster:
       nginx.ingress.kubernetes.io/ssl-redirect: "true"
   isolation:
     podSecurityStandard: baseline
-    # If enabled will add node/proxy permission to the cluster role
-    # in isolation mode
     resourceQuota:
       enabled: true
       quota:
